@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-interface User{
-username:string;
-typed_password:string;
-confirmPassword:string
-}
+
 const prisma=new PrismaClient();
 
 export async function POST(req:NextRequest){
     const saltRounds=10;
-    const {username,typed_password,confirmPassword}:User=await req.json();
+    const {username,typed_password,confirmPassword}=await req.json();
     try{
         const existingUser=await prisma.user.findUnique({
             where:{username}
@@ -31,6 +27,9 @@ export async function POST(req:NextRequest){
                user:user.username
            });
          }
+         return NextResponse.json({
+            message:"both passwords are not matching"
+         })
          
     }
     catch(error:unknown){
