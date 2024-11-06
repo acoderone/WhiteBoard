@@ -1,7 +1,8 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
 
 const prisma = new PrismaClient();
  const authOptions=
@@ -34,10 +35,9 @@ const prisma = new PrismaClient();
           console.error("User not found");
           return null;
         }
-        const match_password = await bcrypt.compare(
-          credentials?.password,
-          user.password
-        );
+        const match_password = credentials?.password && user?.password
+        ? await bcrypt.compare(credentials.password, user.password)
+        : false;
         if (!match_password) {
           console.error("password not match");
           return null;
@@ -49,6 +49,34 @@ const prisma = new PrismaClient();
         };
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+      async profile(profile){
+        
+        const user=await prisma.user.findUnique({
+          where:{
+            email:profile.email
+          }
+        })
+        if(!user){
+           await prisma.user.create({
+            data:{
+              
+              email:profile.email,
+              username:profile?.email.split("@")[0],
+              password:profile?.password
+            }
+           })
+        }
+        return{
+          id:profile.sub,
+          email:profile.email
+        }
+      }
+    }
+   
+  )
   
   ],
   secret: process.env.NEXTAUTH_SECRET,
@@ -70,3 +98,5 @@ const prisma = new PrismaClient();
 };
 const handler=NextAuth(authOptions);
  export {handler as GET,handler as POST};
+  
+
