@@ -3,7 +3,6 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import NextAuth from "next-auth";
 import GithubProvider from 'next-auth/providers/github';
-
 const prisma = new PrismaClient();
 
 const authOptions = {
@@ -69,11 +68,14 @@ const authOptions = {
       if (user) {
         // Handle user login with GitHub
         token.uid = user.id;
-
+         const email=user?.email
         // Check if the user's email exists in the database
+        if(email){
+
+        
         const existingUser = await prisma.user.findUnique({
           where: {
-            email: user.email,
+            email: email,
           },
         });
 
@@ -88,14 +90,17 @@ const authOptions = {
           });
           console.log("New user created for GitHub login:", user.email);
         }
-      }
+      }}
       return token;
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session, token }:any) {
       if (session.user) {
-        session.user.id = token.uid; // Attach user ID to the session
+        session.user.id = token.uid; 
+        session.user.email=token.email;
+        
+        // Attach user ID to the session
       }
       return session;
     },

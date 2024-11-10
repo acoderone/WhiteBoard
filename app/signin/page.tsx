@@ -10,7 +10,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleOauth = async () => {
+  const handleOauth = async (e) => {
+    e.preventDefault();
     const resWithGithub = await signIn("github",{redirect:false});
     console.log("OAuth SignIn Response:", resWithGithub);
      
@@ -19,24 +20,24 @@ export default function Login() {
     } else if (resWithGithub?.ok) {
       console.log("OAuth Success");
       console.log("Sucess");
-      router.push("http://localhost:3000/boards");
+     
      
     } else {
       console.log("Unexpected response:", resWithGithub);
     }
   };
-  const handleSignin = async () => {
+  const handleSignin = async (e) => {
+    e.preventDefault();
     const reswithCredentials = await signIn("credentials", {
       username, // Ensure this matches the field expected by your provider
-      password,
-      redirect: false,
+      password
     });
 
     if (reswithCredentials?.error) {
       setError("Invalid username or password");
     } else if (reswithCredentials?.ok) {
       console.log("Sucess");
-      router.push("/boards");
+      
     }
   };
 
