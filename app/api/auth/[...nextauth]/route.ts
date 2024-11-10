@@ -2,11 +2,11 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+import GithubProvider from 'next-auth/providers/github';
 
 const prisma = new PrismaClient();
- const authOptions=
-{
+
+const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Login",
@@ -19,8 +19,8 @@ const prisma = new PrismaClient();
           placeholder: "password",
         },
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async authorize(credentials:any) {
+
+      async authorize(credentials) {
         if (!credentials) {
           return null;
         }
@@ -35,13 +35,16 @@ const prisma = new PrismaClient();
           console.error("User not found");
           return null;
         }
+
         const match_password = credentials?.password && user?.password
-        ? await bcrypt.compare(credentials.password, user.password)
-        : false;
+          ? await bcrypt.compare(credentials.password, user.password)
+          : false;
+
         if (!match_password) {
-          console.error("password not match");
+          console.error("Password does not match");
           return null;
         }
+
         console.log("User authenticated:", user);
         return {
           id: user.id,
@@ -49,54 +52,61 @@ const prisma = new PrismaClient();
         };
       },
     }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-      async profile(profile){
-        
-        const user=await prisma.user.findUnique({
-          where:{
-            email:profile.email
-          }
-        })
-        if(!user){
-           await prisma.user.create({
-            data:{
-              
-              email:profile.email,
-              username:profile?.email.split("@")[0],
-              password:profile?.password
-            }
-           })
-        }
-        return{
-          id:profile.sub,
-          email:profile.email
-        }
-      }
-    }
-   
-  )
-  
+
+    GithubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+
+    }),
   ],
+
   secret: process.env.NEXTAUTH_SECRET,
+  debug: true,
+
   callbacks: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    jwt: async ({ user, token }: any) => {
-      if(user){
-        token.uid=user.id;
+    async jwt({ token, user }:any) {
+      if (user) {
+        // Handle user login with GitHub
+        token.uid = user.id;
+
+        // Check if the user's email exists in the database
+        const existingUser = await prisma.user.findUnique({
+          where: {
+            email: user.email,
+          },
+        });
+
+        if (!existingUser) {
+          // Create a new user if the email does not exist
+          await prisma.user.create({
+            data: {
+              email: user.email,
+              username: user.email?.split("@")[0], // Set username based on the email's local part
+              password: "", // GitHub login doesn't use a password
+            },
+          });
+          console.log("New user created for GitHub login:", user.email);
+        }
       }
       return token;
     },
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    session: async ({ session, token }:any) => {
-      if(session.user)
-      session.user.id = token.uid; // Attach user ID to the session
+    async session({ session, token }:any) {
+      if (session.user) {
+        session.user.id = token.uid; // Attach user ID to the session
+      }
       return session;
     },
+    async redirect({
+      url,baseUrl
+    }){
+      return baseUrl + '/boards'; 
+    }
   },
 };
-const handler=NextAuth(authOptions);
- export {handler as GET,handler as POST};
-  
 
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST };
