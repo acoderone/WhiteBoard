@@ -1,11 +1,12 @@
 import { useState } from "react";
-
+import {useRouter} from "next/navigation";
 interface ModalProps{
 isOpen:boolean,
 onClose:()=>void
 }
 
 const Modal:React.FC<ModalProps> =({isOpen,onClose})=>{
+    //const router=useRouter();
    const [title,setTitle]=useState("");
     const addBoard=async()=>{
       const response=await fetch('/api/auth/boards',{
@@ -18,6 +19,8 @@ const Modal:React.FC<ModalProps> =({isOpen,onClose})=>{
      const data=await response.json();
      if(response.ok){
         console.log("board added");
+        //location.reload();
+        isCreated=true;
      }
      else{
         console.error("Signup failed", data);

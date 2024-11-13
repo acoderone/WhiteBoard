@@ -20,7 +20,7 @@ export default function Boards() {
   const handleAddBoard=()=>{
     setIsopen(true);
   }
-  const deleteBoard=async(board_id)=>{
+  const deleteBoard=async(board_id: number)=>{
     
     const response=await fetch(`api/auth/boards/${board_id}`,{
       method:"DELETE",
@@ -66,7 +66,7 @@ checkAuthnetication();
     <div>
       <h1>Welcome to the Boards, {session.user?.name}!</h1>
       <button onClick={handleAddBoard}>Add</button>
-      <Modal isOpen={isOpen} onClose={()=>setIsopen(false)}/>
+      <Modal isOpen={isOpen} onClose={()=>setIsopen(false)} />
       <div>
      {boards.length>0?
      (

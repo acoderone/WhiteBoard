@@ -9,9 +9,10 @@ async function getUser() {
   return session;
 }
 
-export async function DELETE({ params }: { params: { board_id: string } }) {
-  console.log(params);  // Log to see the params object
-
+export async function DELETE(request:Request) {
+    // Log to see the params object
+const url=new URL(request.url);
+const board_id=url.pathname.split("/").pop();
   const session = await getUser();
   if (!session) {
     return NextResponse.json({
@@ -32,12 +33,12 @@ export async function DELETE({ params }: { params: { board_id: string } }) {
     }, { status: 404 });
   }
 
-  const board_Id = parseInt(params.board_id);  // This should be logged in params
+  const board_Id = board_id||"";  // This should be logged in params
   try {
     const board = await prisma.board.delete({
       where: {
         owner_id: existing_user?.id,
-        id: board_Id,
+        id: parseInt(board_Id),
       },
     });
 
