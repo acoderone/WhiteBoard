@@ -30,16 +30,17 @@ export async function POST(req: NextRequest) {
     });
   }
   try {
-    await prisma.board.create({
+    const board=await prisma.board.create({
       data: {
         owner_id: existing_user.id,
         title: title,
       },
     });
 
-    return NextResponse.json({
-      message: "Board created",
-    });
+    return NextResponse.json(
+      
+      board
+    );
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 }); // Internal server error

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import {useRouter} from "next/navigation";
 interface ModalProps{
-isOpen:boolean,
-onClose:()=>void
+isOpen:boolean;
+onClose:()=>void;
+onBoardAdded:(newBoard:{id:number,title:string})=>void;
 }
 
-const Modal:React.FC<ModalProps> =({isOpen,onClose})=>{
+const Modal:React.FC<ModalProps> =({isOpen,onClose,onBoardAdded})=>{
     //const router=useRouter();
    const [title,setTitle]=useState("");
     const addBoard=async()=>{
@@ -19,8 +19,11 @@ const Modal:React.FC<ModalProps> =({isOpen,onClose})=>{
      const data=await response.json();
      if(response.ok){
         console.log("board added");
+        console.log(data);
         //location.reload();
-        isCreated=true;
+        onBoardAdded(data);
+        onClose();
+        
      }
      else{
         console.error("Signup failed", data);

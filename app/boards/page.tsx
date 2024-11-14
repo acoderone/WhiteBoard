@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import { NextResponse } from "next/server";
 
+
 type board={
   id:number;
   title:string;
@@ -20,6 +21,11 @@ export default function Boards() {
   const handleAddBoard=()=>{
     setIsopen(true);
   }
+
+const addBoardsToList=(newBoard:board)=>{
+  setBoards((prevBoards)=>[...prevBoards,newBoard]);
+}
+
   const deleteBoard=async(board_id: number)=>{
     
     const response=await fetch(`api/auth/boards/${board_id}`,{
@@ -50,7 +56,7 @@ const checkAuthnetication=async()=>{
       if(response.ok){
         const data=await response.json();
         setBoards(data.boards)
-        //console.log(data);
+        console.log("data",data);
       }
   }
 }
@@ -66,7 +72,7 @@ checkAuthnetication();
     <div>
       <h1>Welcome to the Boards, {session.user?.name}!</h1>
       <button onClick={handleAddBoard}>Add</button>
-      <Modal isOpen={isOpen} onClose={()=>setIsopen(false)} />
+      <Modal isOpen={isOpen} onClose={()=>setIsopen(false)} onBoardAdded={addBoardsToList} />
       <div>
      {boards.length>0?
      (
