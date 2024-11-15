@@ -26,6 +26,9 @@ const addBoardsToList=(newBoard:board)=>{
   setBoards((prevBoards)=>[...prevBoards,newBoard]);
 }
 
+ const handleLink=(id: number)=>{
+  router.push("/boards/"+id)
+ }
   const deleteBoard=async(board_id: number)=>{
     
     const response=await fetch(`api/auth/boards/${board_id}`,{
@@ -80,7 +83,10 @@ checkAuthnetication();
         
         <div key={board.id}>
           <h1>{board.title}</h1>
-        <button onClick={()=>deleteBoard(board.id)}>Delete</button></div>
+        <button onClick={()=>deleteBoard(board.id)}>Delete</button>
+        <button onClick={()=>handleLink(board.id)}>Use</button>
+        </div>
+        
         
       ))
      ):(<div>Boards not present</div>)}

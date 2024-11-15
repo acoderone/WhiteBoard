@@ -12,7 +12,8 @@ async function getUser() {
 export async function DELETE(request:Request) {
     // Log to see the params object
 const url=new URL(request.url);
-const board_id=url.pathname.split("/").pop();
+const board_id=url.pathname.split("/").pop() || "";
+const board_ID=parseInt(board_id);
   const session = await getUser();
   if (!session) {
     return NextResponse.json({
@@ -32,17 +33,29 @@ const board_id=url.pathname.split("/").pop();
       message: "User not found",
     }, { status: 404 });
   }
-
-  const board_Id = board_id||"";  // This should be logged in params
-  try {
-    const board = await prisma.board.delete({
-      where: {
-        owner_id: existing_user?.id,
-        id: parseInt(board_Id),
-      },
-    });
+  try{
+  const existingBoard = await prisma.board.findFirst({
+    where: {
+      id: board_ID,
+      owner_id: existing_user.id,
+    },
+  });
+  
+  if (!existingBoard) {
+    return NextResponse.json(
+      { message: "Board not found or not owned by the user" },
+      { status: 404 }
+    );
+  }
+ 
+  const board = await prisma.board.delete({
+    where: {
+      id: board_ID,
+    },
+  });
 
     return NextResponse.json(
+     
       { message: "Board deleted successfully" },
       { status: 200 }
     );
@@ -52,4 +65,17 @@ const board_id=url.pathname.split("/").pop();
       { status: 404 }
     );
   }
+}
+
+export async function GET(request:Request){
+const url=new URL(request.url);
+const board_id=url.pathname.split("/").pop() ||" ";
+const board_ID=parseInt(board_id);
+const board=await prisma.board.findFirst({
+  where:{
+    id:board_ID
+  }
+})
+console.log(board);
+return NextResponse.json(board);
 }
