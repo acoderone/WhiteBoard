@@ -60,7 +60,7 @@ export async function GET() {
       { status: 401 } // Unauthorized
     );
   }
-  //console.log(session);
+  console.log(session);
   const existing_user = await prisma.user.findUnique({
     where: {
       email: session?.user?.email || " ",
@@ -71,14 +71,14 @@ export async function GET() {
       message: "user not found",
     });
   }
-  //console.log(existing_user);
+  
   const boards = await prisma.board.findMany({
     where: {
       owner_id: existing_user.id,
     },
   });
   if (!boards || boards.length === 0) {
-    NextResponse.json({
+    return NextResponse.json({
       message: "Boards not found",
     });
   }

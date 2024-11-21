@@ -1,11 +1,11 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+
 import { useState } from "react";
 
 export default function Login() {
-  const router = useRouter();
+  //const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -26,8 +26,8 @@ export default function Login() {
       console.log("Unexpected response:", resWithGithub);
     }
   };
-  const handleSignin = async (e) => {
-    e.preventDefault();
+  const handleSignin = async () => {
+    
     const reswithCredentials = await signIn("credentials", {
       username, // Ensure this matches the field expected by your provider
       password

@@ -48,6 +48,7 @@ const authOptions = {
         return {
           id: user.id,
           name: user.username,
+          email:user.email
         };
       },
     }),
@@ -69,6 +70,7 @@ const authOptions = {
         // Handle user login with GitHub
         token.uid = user.id;
          const email=user?.email
+         token.email=email
         // Check if the user's email exists in the database
         if(email){
 

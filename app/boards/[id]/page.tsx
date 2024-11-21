@@ -15,6 +15,7 @@ export default function Board() {
   const [color, setColor] = useState("#000000");
   const [width, setWidth] = useState<number>(5);
   const params = useParams();
+  const [isErasing,setIsErasing]=useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null); // Specify canvas element type
   const board_id = params.id;
 

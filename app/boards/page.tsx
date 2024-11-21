@@ -58,7 +58,10 @@ const checkAuthnetication=async()=>{
       })
       if(response.ok){
         const data=await response.json();
+        if(data.boards)
         setBoards(data.boards)
+        else
+        setBoards([]);
         console.log("data",data);
       }
   }
