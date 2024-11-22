@@ -15,55 +15,83 @@ export default function Board() {
   const [color, setColor] = useState("#000000");
   const [width, setWidth] = useState<number>(5);
   const params = useParams();
-  const [isErasing,setIsErasing]=useState(false);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null); // Specify canvas element type
+  const [isErasing, setIsErasing] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const board_id = params.id;
+  const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
 
+  // Initialize the Fabric canvas
   useEffect(() => {
-    if (!canvasRef.current) return; // Ensure the canvasRef exists before accessing it
+    if (!canvasRef.current || fabricCanvasRef.current) {
+      return;
+    }
 
-    const canvas = new fabric.Canvas(canvasRef.current);
-    canvas.isDrawingMode = true; // Enable drawing mode
-    
-    const pencilBrush = new fabric.PencilBrush(canvas);
-    canvas.freeDrawingBrush = pencilBrush;
-    const updateBrush = () => {
-      if (canvas.freeDrawingBrush) {
-        canvas.freeDrawingBrush.color = color;
-        canvas.freeDrawingBrush.width = width; // Update brush width
-      }
-    };
-
+    const canvas = new fabric.Canvas(canvasRef.current,{
+      isDrawingMode:true,
+    });
+    fabricCanvasRef.current = canvas;
+    canvas.isDrawingMode = true;
+    if(!canvas.freeDrawingBrush){
+      canvas.freeDrawingBrush=new fabric.PencilBrush(canvas);
+    }
+    console.log("FreeDrawingBrush after initialization:", canvas.freeDrawingBrush);
     const getBoard = async () => {
-      //console.log(board_id);
       const response = await fetch(`/api/auth/boards/${board_id}`, {
         method: "GET",
       });
       if (response.ok) {
         const data: Board = await response.json();
-        //console.log(data);
         setBoard(data);
       }
     };
+
     getBoard();
- 
-    updateBrush(); // Update brush color and width on initial load
 
     return () => {
       canvas.dispose();
+      fabricCanvasRef.current = null;
     };
-  }, [board_id, color, width]); // Ensure the effect depends on width and color
+  }, [board_id]);
+
+  // Update brush properties and toggle eraser mode
+  useEffect(() => {
+    const canvas = fabricCanvasRef.current;
+    console.log(canvas?.freeDrawingBrush)
+    if (!canvas) return;
+    
+    canvas.isDrawingMode = !isErasing;
+    console.log(canvas.freeDrawingBrush);
+    if (canvas.freeDrawingBrush) {
+      
+      canvas.freeDrawingBrush.color = color;
+      canvas.freeDrawingBrush.width = width;
+     
+    }
+   
+    if (isErasing) {
+      console.log("Hii");
+      canvas.on("mouse:down", (event) => {
+        const target = canvas.findTarget(event.e);
+        if (target) {
+          canvas.remove(target); // Remove object on click
+        }
+      });
+    } else {
+      //canvas.isDrawingMode = true;
+      canvas.off("mouse:down"); // Disable erasing behavior
+    }
+  }, [color, isErasing, width]);
 
   return (
     <div>
-      <div> {board?.title}</div>
+      <div>{board?.title}</div>
 
       <div>
         <canvas
           ref={canvasRef}
-          width={window.innerWidth}
-          height={500}
-          className="border border-red-500"
+          width={700}
+          height={600}
+          className="border border-black-200"
         />
       </div>
 
@@ -89,6 +117,11 @@ export default function Board() {
             value={width}
             onChange={(e) => setWidth(parseInt(e.target.value))}
           />
+        </div>
+        <div>
+          <button onClick={() => setIsErasing(!isErasing)}>
+            {isErasing ? "Switch to Brush" : "Switch to Eraser"}
+          </button>
         </div>
       </div>
     </div>
