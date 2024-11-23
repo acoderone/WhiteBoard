@@ -14,21 +14,44 @@ export default function Board() {
   const [board, setBoard] = useState<Board | undefined>(undefined);
   const [color, setColor] = useState("#000000");
   const [width, setWidth] = useState<number>(5);
+  const [canvasWidth, setCanvasWidth] = useState<number>(window.innerWidth);
   const params = useParams();
   const [isErasing, setIsErasing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const board_id = params.id;
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
 
+
+
+  useEffect(() => {
+    // Set canvas width after the component is mounted
+    if (typeof window !== "undefined") {
+      setCanvasWidth(window.innerWidth); // Set initial canvas width
+
+      // Resize handler
+      const handleResize = () => {
+        setCanvasWidth(window.innerWidth);
+      };
+
+      window.addEventListener("resize", handleResize);
+
+      // Cleanup the event listener on component unmount
+      return () => {
+        window.removeEventListener("resize", handleResize);
+      };
+    }
+  }, []);
+
   // Initialize the Fabric canvas
   useEffect(() => {
     if (!canvasRef.current || fabricCanvasRef.current) {
       return;
     }
-
+   
     const canvas = new fabric.Canvas(canvasRef.current,{
       isDrawingMode:true,
     });
+    
     fabricCanvasRef.current = canvas;
     canvas.isDrawingMode = true;
     if(!canvas.freeDrawingBrush){
@@ -59,7 +82,7 @@ export default function Board() {
     console.log(canvas?.freeDrawingBrush)
     if (!canvas) return;
     
-    canvas.isDrawingMode = !isErasing;
+    
     console.log(canvas.freeDrawingBrush);
     if (canvas.freeDrawingBrush) {
       
@@ -68,30 +91,25 @@ export default function Board() {
      
     }
    
-    if (isErasing) {
+    if (isErasing && canvas.freeDrawingBrush) {
       console.log("Hii");
-      canvas.on("mouse:down", (event) => {
-        const target = canvas.findTarget(event.e);
-        if (target) {
-          canvas.remove(target); // Remove object on click
-        }
-      });
-    } else {
-      //canvas.isDrawingMode = true;
-      canvas.off("mouse:down"); // Disable erasing behavior
-    }
+     canvas.freeDrawingBrush.color="#ffffff";
+     canvas.freeDrawingBrush.width=30;
+     setWidth(30);
+        } 
   }, [color, isErasing, width]);
 
   return (
-    <div>
+    <div className="overflow-hidden">
       <div>{board?.title}</div>
 
       <div>
         <canvas
+       
           ref={canvasRef}
-          width={700}
+          width={canvasWidth}
           height={600}
-          className="border border-black-200"
+          className="border border-black-200 "
         />
       </div>
 
@@ -109,7 +127,7 @@ export default function Board() {
         </div>
         <div>
           <label htmlFor="width" className="block text-sm font-medium">
-            Brush Width
+           {isErasing?"Eraser Width": "Brush Width"}
           </label>
           <input
             id="width"
