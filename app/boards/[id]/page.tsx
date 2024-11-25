@@ -45,7 +45,7 @@ export default function Board() {
     if (!canvasRef.current || fabricCanvasRef.current) {
       return;
     }
-    console.log("!");
+    //console.log("!");
     const canvas = new fabric.Canvas(canvasRef.current, {
       isDrawingMode: true,
     });
@@ -96,8 +96,9 @@ export default function Board() {
       })
       if (canvas.freeDrawingBrush) {
         console.log("Hii")
-        canvas.freeDrawingBrush.color = color;
-        canvas.freeDrawingBrush.width = width;
+        canvas.freeDrawingBrush.color = "black";
+        canvas.freeDrawingBrush.width = 5;
+        setWidth(5);
       }
     } else if (tool == "eraser") {
       canvas.isDrawingMode = true;
@@ -120,7 +121,7 @@ export default function Board() {
     let startX: number, startY: number;
     let currentLine: fabric.Line | null = null;
 
-    const handleMouseDown = (e) => {
+    const handleMouseDown = (e : MouseEvent) => {
       const pointer = canvas.getPointer(e.e);
       startX = pointer.x;
       startY = pointer.y;
