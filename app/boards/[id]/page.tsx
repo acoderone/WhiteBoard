@@ -14,48 +14,45 @@ export default function Board() {
   const [board, setBoard] = useState<Board | undefined>(undefined);
   const [color, setColor] = useState("#000000");
   const [width, setWidth] = useState<number>(5);
-  const [canvasWidth, setCanvasWidth] = useState<number>(window.innerWidth);
+
   const params = useParams();
-  const [tool, setTool] = useState<"line" | "eraser" | "pencil">();
+  const [tool, setTool] = useState<"line" | "eraser" | "pencil">("pencil");
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const board_id = params.id;
   const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
-
+  const handleSave = async () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+    const CanvasState = JSON.stringify(canvas.toJSON());
+    localStorage.setItem("whiteboard-data", CanvasState);
+  };
   useEffect(() => {
-    // Set canvas width after the component is mounted
-    if (typeof window !== "undefined") {
-      setCanvasWidth(window.innerWidth); // Set initial canvas width
-
-      // Resize handler
-      const handleResize = () => {
-        setCanvasWidth(window.innerWidth);
-      };
-
-      window.addEventListener("resize", handleResize);
-
-      // Cleanup the event listener on component unmount
-      return () => {
-        window.removeEventListener("resize", handleResize);
-      };
-    }
-  }, []);
-
-  // Initialize the Fabric canvas
-  useEffect(() => {
+    // Initialize the Fabric canvas
     if (!canvasRef.current || fabricCanvasRef.current) {
       return;
     }
-    //console.log("!");
+
     const canvas = new fabric.Canvas(canvasRef.current, {
       isDrawingMode: true,
     });
 
     fabricCanvasRef.current = canvas;
-   // canvas.isDrawingMode = true;
-    /*     if(!canvas.freeDrawingBrush){
-      canvas.freeDrawingBrush=new fabric.PencilBrush(canvas);
+
+    // Load saved canvas data from local storage
+    const canvasSavedData = localStorage.getItem("whiteboard-data");
+    if (canvasSavedData) {
+      //console.log("Loading saved data:", canvasSavedData); 
+      canvas.loadFromJSON(canvasSavedData, () => {
+       // console.log("Canvas loaded from JSON"); 
+        canvas.requestRenderAll();
+        canvas.isDrawingMode=true;
+      });
     }
-    console.log("FreeDrawingBrush after initialization:", canvas.freeDrawingBrush); */
+    else {
+      console.log("No saved data found"); // Debugging
+    }
+    // Fetch board data
     const getBoard = async () => {
       const response = await fetch(`/api/auth/boards/${board_id}`, {
         method: "GET",
@@ -77,34 +74,28 @@ export default function Board() {
   // Update brush properties and toggle eraser mode
   useEffect(() => {
     const canvas = fabricCanvasRef.current;
-    
+
     if (!canvas) return;
 
-    
-
     if (tool == "pencil") {
-      
       canvas.isDrawingMode = true;
-      canvas.freeDrawingBrush=new fabric.PencilBrush(canvas);
-      canvas.on("path:created",(e)=>{
-        const path=e.path;
-        
-          path.selectable=false;
-          path.evented=false;
-        
-       
-      })
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+      canvas.on("path:created", (e) => {
+        const path = e.path;
+
+        path.selectable = false;
+        path.evented = false;
+      });
       if (canvas.freeDrawingBrush) {
-        console.log("Hii")
+        console.log("Hii");
         canvas.freeDrawingBrush.color = "black";
         canvas.freeDrawingBrush.width = 5;
         setWidth(5);
       }
     } else if (tool == "eraser") {
       canvas.isDrawingMode = true;
-      canvas.freeDrawingBrush=new fabric.PencilBrush(canvas);
+      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
       if (canvas.freeDrawingBrush) {
-    
         canvas.freeDrawingBrush.color = "#ffffff";
         canvas.freeDrawingBrush.width = 30;
         setWidth(30);
@@ -121,7 +112,7 @@ export default function Board() {
     let startX: number, startY: number;
     let currentLine: fabric.Line | null = null;
 
-    const handleMouseDown = (e : MouseEvent) => {
+    const handleMouseDown = (e) => {
       const pointer = canvas.getPointer(e.e);
       startX = pointer.x;
       startY = pointer.y;
@@ -161,7 +152,7 @@ export default function Board() {
       canvas.off("mouse:move", handleMouseMove);
       canvas.off("mouse:up", handleMouseUp);
     };
-  }, [tool, color, width]);
+  }, [tool, color, width, board_id]);
   return (
     <div className="overflow-hidden">
       <div>{board?.title}</div>
@@ -169,7 +160,7 @@ export default function Board() {
       <div>
         <canvas
           ref={canvasRef}
-          width={canvasWidth}
+          width={1920}
           height={600}
           className="border border-black-200 "
         />
@@ -206,6 +197,9 @@ export default function Board() {
         </div>
         <div>
           <button onClick={() => setTool("line")}>Line</button>
+        </div>
+        <div>
+          <button onClick={handleSave}>Save</button>
         </div>
       </div>
     </div>

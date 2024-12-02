@@ -24,5 +24,6 @@ model Board {
   id        Int      @id @default(autoincrement())
   owner_id  Int
   title     String
+  canvasState String?
   createdAt DateTime @default(now())
 }
