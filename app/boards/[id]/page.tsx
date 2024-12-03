@@ -112,7 +112,7 @@ export default function Board() {
     let startX: number, startY: number;
     let currentLine: fabric.Line | null = null;
 
-    const handleMouseDown = (e) => {
+    const handleMouseDown = (e: { e: fabric.TPointerEvent; }) => {
       const pointer = canvas.getPointer(e.e);
       startX = pointer.x;
       startY = pointer.y;
@@ -127,7 +127,7 @@ export default function Board() {
       canvas.add(currentLine);
     };
 
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: { e: fabric.TPointerEvent; }) => {
       if (!currentLine) return;
 
       const pointer = canvas.getPointer(e.e);

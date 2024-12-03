@@ -6,6 +6,7 @@ const Appbar = () => {
   const router=useRouter();
   const { data: session, status } = useSession();
   const handleLogout=()=>{
+    localStorage.removeItem('whiteboard-data');
   signOut({callbackUrl:"/signin"})
   }
   return (
